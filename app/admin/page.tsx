@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { LogoutButton } from '../logout/page' 
+import { LogoutButton } from '../logout/page'
 
 type SalaryRecord = {
   id: number
@@ -21,25 +21,27 @@ export default function AdminPanel() {
   const [editingId, setEditingId] = useState<number | null>(null)
   const [editForm, setEditForm] = useState<Partial<SalaryRecord>>({})
 
+  // Fetch records safely
   useEffect(() => {
-    fetchRecords()
-  }, [])
-
-  async function fetchRecords() {
-    setLoading(true)
-    setError('')
-    try {
-      const recordsArray: SalaryRecord[] = await fetchAllSalaries()
-      const computed = recordsArray.map((r) => ({
-        ...r,
-        commission: r.commission ?? 500,
-      }))
-      setRecords(computed)
-    } catch (err: any) {
-      setError(err.message || 'Failed to fetch records')
+    const fetchRecords = async () => {
+      setLoading(true)
+      setError('')
+      try {
+        const recordsArray: SalaryRecord[] = await fetchAllSalaries()
+        const computed = recordsArray.map((r) => ({
+          ...r,
+          commission: r.commission ?? 500,
+        }))
+        setRecords(computed)
+      } catch (err: unknown) {
+        if (err instanceof Error) setError(err.message)
+        else setError('Failed to fetch records')
+      }
+      setLoading(false)
     }
-    setLoading(false)
-  }
+
+    fetchRecords()
+  }, [fetchAllSalaries]) // safe dependency
 
   function startEdit(record: SalaryRecord) {
     setEditingId(record.id)
@@ -66,11 +68,12 @@ export default function AdminPanel() {
       })
       if (!result.success) setError(result.message)
       else {
-        await fetchRecords()
+        await fetchAllSalariesAndUpdate()
         cancelEdit()
       }
-    } catch (err: any) {
-      setError(err.message || 'Error updating record')
+    } catch (err: unknown) {
+      if (err instanceof Error) setError(err.message)
+      else setError('Error updating record')
     }
     setLoading(false)
   }
@@ -82,14 +85,30 @@ export default function AdminPanel() {
     try {
       const result = await deleteSalary(id)
       if (!result.success) setError(result.message)
-      else await fetchRecords()
-    } catch (err: any) {
-      setError(err.message || 'Error deleting record')
+      else await fetchAllSalariesAndUpdate()
+    } catch (err: unknown) {
+      if (err instanceof Error) setError(err.message)
+      else setError('Error deleting record')
     }
     setLoading(false)
   }
 
-  // Calculate totals with default 500 for commission
+  // Helper to refresh records after updates/deletes
+  const fetchAllSalariesAndUpdate = async () => {
+    try {
+      const recordsArray: SalaryRecord[] = await fetchAllSalaries()
+      const computed = recordsArray.map((r) => ({
+        ...r,
+        commission: r.commission ?? 500,
+      }))
+      setRecords(computed)
+    } catch (err: unknown) {
+      if (err instanceof Error) setError(err.message)
+      else setError('Failed to fetch records')
+    }
+  }
+
+  // Totals
   const totalLocal = records.reduce((sum, r) => {
     return sum + (editingId === r.id ? (editForm.salary_local ?? r.salary_local) : r.salary_local)
   }, 0)
@@ -111,7 +130,6 @@ export default function AdminPanel() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col items-center justify-start p-6">
-      {/* Page Title */}
       <h1 className="sticky top-4 z-10 text-4xl font-extrabold text-indigo-800 mb-6 bg-blue-50 px-2 rounded">
         Custom Salary View
       </h1>
@@ -236,7 +254,6 @@ export default function AdminPanel() {
                     </tr>
                   ))}
 
-                  {/* Totals Row */}
                   <tr className="bg-indigo-50 font-bold text-indigo-700">
                     <td className="border px-4 py-3 text-center" colSpan={2}>Totals</td>
                     <td className="border px-4 py-3 text-center">{totalLocal.toFixed(2)}</td>

@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import { useRouter } from 'next/navigation'
 
 type SalaryFormState = { salary_local: string }
+type SaveSalaryResponse = { success: boolean; message?: string }
 
 export default function SalaryForm() {
   const { user, salaryRecord, fetchUserSalary, saveSalary, logout } = useAuth()
@@ -31,7 +32,7 @@ export default function SalaryForm() {
     }
   }, [salaryRecord, form.salary_local])
 
-  function validateForm() {
+  function validateForm(): string {
     if (!form.salary_local.trim()) return 'Salary in local currency is required'
     if (isNaN(Number(form.salary_local)) || Number(form.salary_local) <= 0)
       return 'Salary in local currency must be positive'
@@ -52,18 +53,20 @@ export default function SalaryForm() {
     setLoading(true)
     try {
       const payload = { salary_local: parseFloat(form.salary_local) }
-      const res = await saveSalary(payload)
+      const res: SaveSalaryResponse = await saveSalary(payload)
 
-      if (!res.success) setError(res.message)
+      if (!res.success) setError(res.message || 'Failed to save salary')
       else {
         setSuccess('Salary saved successfully!')
         await fetchUserSalary()
         setTimeout(() => setSuccess(''), 2000)
       }
-    } catch (err: any) {
-      setError(err.message || 'Error saving salary')
+    } catch (err: unknown) {
+      if (err instanceof Error) setError(err.message)
+      else setError('Error saving salary')
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   function handleLogout() {
@@ -75,14 +78,11 @@ export default function SalaryForm() {
 
   return (
     <main className="max-w-2xl mx-auto mt-12 p-6 bg-gradient-to-br from-indigo-50 via-white to-indigo-50 rounded-xl shadow-lg border border-indigo-100 flex flex-col">
-      {/* Top-Level Header */}
       <h1 className="text-3xl font-extrabold text-indigo-800 mb-6 text-center">
         Custom Salary View
       </h1>
 
-      {/* Container */}
       <div className="bg-white p-6 rounded-xl shadow-md border border-indigo-100 flex flex-col gap-6">
-        {/* Container Header */}
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-bold text-indigo-700">User Salary Details</h2>
           <button
@@ -93,11 +93,9 @@ export default function SalaryForm() {
           </button>
         </div>
 
-        {/* Error / Success Messages */}
         {error && <p className="text-red-600">{error}</p>}
         {success && <p className="text-green-600">{success}</p>}
 
-        {/* Salary Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
             type="text"
@@ -129,7 +127,6 @@ export default function SalaryForm() {
           </button>
         </form>
 
-        {/* Salary Table */}
         {salaryRecord && (
           <section className="mt-4 bg-white p-4 rounded-lg shadow max-h-80 overflow-y-auto">
             <h3 className="text-lg font-semibold text-indigo-600 mb-3">Your Salary Info</h3>

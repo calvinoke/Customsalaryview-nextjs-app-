@@ -1,95 +1,94 @@
-'use client'
+'use client';
 
-import React, { useState } from 'react'
-import { useAuth, User } from '../context/AuthContext'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import React, { useState } from 'react';
+import { useAuth, User } from '../context/AuthContext';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 // Password strength helpers
 function calculatePasswordStrength(password: string) {
-  let score = 0
-  if (!password) return score
-  if (password.length >= 6) score += 1
-  if (password.length >= 10) score += 1
-  if (/[a-z]/.test(password)) score += 1
-  if (/[A-Z]/.test(password)) score += 1
-  if (/\d/.test(password)) score += 1
-  if (/[^A-Za-z0-9]/.test(password)) score += 1
-  return score
+  let score = 0;
+  if (!password) return score;
+  if (password.length >= 6) score += 1;
+  if (password.length >= 10) score += 1;
+  if (/[a-z]/.test(password)) score += 1;
+  if (/[A-Z]/.test(password)) score += 1;
+  if (/\d/.test(password)) score += 1;
+  if (/[^A-Za-z0-9]/.test(password)) score += 1;
+  return score;
 }
 
 function getStrengthLabel(score: number) {
   switch (score) {
     case 0:
     case 1:
-      return { label: 'Very Weak', color: 'bg-red-500' }
+      return { label: 'Very Weak', color: 'bg-red-500' };
     case 2:
-      return { label: 'Weak', color: 'bg-orange-500' }
+      return { label: 'Weak', color: 'bg-orange-500' };
     case 3:
-      return { label: 'Fair', color: 'bg-yellow-400' }
+      return { label: 'Fair', color: 'bg-yellow-400' };
     case 4:
-      return { label: 'Good', color: 'bg-green-400' }
+      return { label: 'Good', color: 'bg-green-400' };
     case 5:
     case 6:
-      return { label: 'Strong', color: 'bg-green-600' }
+      return { label: 'Strong', color: 'bg-green-600' };
     default:
-      return { label: '', color: '' }
+      return { label: '', color: '' };
   }
 }
 
 export default function LoginPage() {
-  const auth = useAuth()
-  const router = useRouter()
+  const auth = useAuth();
+  const router = useRouter();
 
-  const [form, setForm] = useState({ email: '', password: '' })
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>({})
-  const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [showPassword, setShowPassword] = useState(false)
+  const [form, setForm] = useState({ email: '', password: '' });
+  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
-  const strengthScore = calculatePasswordStrength(form.password)
-  const strength = getStrengthLabel(strengthScore)
+  const strengthScore = calculatePasswordStrength(form.password);
+  const strength = getStrengthLabel(strengthScore);
 
   function validateForm() {
-    const newErrors: { email?: string; password?: string } = {}
-    if (!form.email.trim()) newErrors.email = 'Email is required'
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) newErrors.email = 'Invalid email'
+    const newErrors: { email?: string; password?: string } = {};
+    if (!form.email.trim()) newErrors.email = 'Email is required';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) newErrors.email = 'Invalid email';
 
-    if (!form.password.trim()) newErrors.password = 'Password is required'
-    else if (form.password.length < 6) newErrors.password = 'Password must be at least 6 chars'
+    if (!form.password.trim()) newErrors.password = 'Password is required';
+    else if (form.password.length < 6) newErrors.password = 'Password must be at least 6 characters';
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   }
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setError('')
-    setSuccess('')
-    setErrors({})
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+    setErrors({});
 
-    if (!validateForm()) return
+    if (!validateForm()) return;
 
-    setLoading(true)
+    setLoading(true);
     try {
-      const loggedInUser: User = await auth.login(form.email, form.password)
-      setSuccess('Login successful! Redirecting...')
+      const loggedInUser: User = await auth.login(form.email, form.password);
+      setSuccess('Login successful! Redirecting...');
 
-      if (loggedInUser.role === 'admin') router.push('/admin')
-      else router.push('/salary')
+      // Redirect based on role
+      if (loggedInUser.role === 'admin') router.push('/admin');
+      else router.push('/salary');
     } catch (err: any) {
-      setError(err.message || 'Login failed')
+      setError(err.message || 'Login failed');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-indigo-100 px-4">
-      {/* Wider container to fit header */}
       <div className="w-full max-w-lg bg-white rounded-3xl shadow-2xl p-8 md:p-10 flex flex-col">
-        {/* Header */}
         <h1 className="text-2xl md:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-cyan-500 to-indigo-600 text-center mb-2 drop-shadow-md whitespace-nowrap">
           Custom Salary View
         </h1>
@@ -97,7 +96,6 @@ export default function LoginPage() {
           Login to your account
         </h2>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="grid gap-4">
           <div>
             <input
@@ -105,7 +103,9 @@ export default function LoginPage() {
               placeholder="Email"
               value={form.email}
               onChange={e => setForm({ ...form, email: e.target.value })}
-              className={`w-full border rounded px-3 py-2 ${errors.email ? 'border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-indigo-400`}
+              className={`w-full border rounded px-3 py-2 ${
+                errors.email ? 'border-red-500' : 'border-gray-300'
+              } focus:outline-none focus:ring-2 focus:ring-indigo-400`}
               required
             />
             {errors.email && <p className="text-red-600 text-sm mt-1">{errors.email}</p>}
@@ -117,7 +117,9 @@ export default function LoginPage() {
               placeholder="Password"
               value={form.password}
               onChange={e => setForm({ ...form, password: e.target.value })}
-              className={`w-full border rounded px-3 py-2 ${errors.password ? 'border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-indigo-400`}
+              className={`w-full border rounded px-3 py-2 ${
+                errors.password ? 'border-red-500' : 'border-gray-300'
+              } focus:outline-none focus:ring-2 focus:ring-indigo-400`}
               required
             />
             <button
@@ -164,5 +166,5 @@ export default function LoginPage() {
         </form>
       </div>
     </main>
-  )
+  );
 }

@@ -25,12 +25,15 @@ export default function ForgotPassword() {
 
     setLoading(true)
     try {
-      await forgotPassword(email)
-      setMessage('Reset link sent! Please check your email.')
-    } catch (err: any) {
-      setError(err.message || 'An error occurred. Please try again.')
+      const res = await forgotPassword(email)
+      if (res.success) setMessage(res.message)
+      else setError(res.message)
+    } catch (err: unknown) {
+      if (err instanceof Error) setError(err.message)
+      else setError('An error occurred. Please try again.')
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   const handleLogout = () => {

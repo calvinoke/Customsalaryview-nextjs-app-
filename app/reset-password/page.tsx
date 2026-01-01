@@ -1,58 +1,52 @@
 'use client'
 
-import React, { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { useRouter } from 'next/navigation';
+import React, { useState } from 'react'
+import { useAuth } from '../context/AuthContext'
+import { useRouter } from 'next/navigation'
 
 export default function ResetPassword() {
-  const { resetPassword, logout } = useAuth();
-  const router = useRouter();
+  const { resetPassword, logout } = useAuth()
+  const router = useRouter()
 
-  const [email, setEmail] = useState('');
-  const [token, setToken] = useState('');
-  const [password, setPassword] = useState('');
-  const [passwordConfirmation, setPasswordConfirmation] = useState('');
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState('')
+  const [token, setToken] = useState('')
+  const [password, setPassword] = useState('')
+  const [passwordConfirmation, setPasswordConfirmation] = useState('')
+  const [message, setMessage] = useState('')
+  const [error, setError] = useState('')
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError('');
-    setMessage('');
+    e.preventDefault()
+    setError('')
+    setMessage('')
 
     try {
-      const res = await resetPassword(
+      const res: { message?: string } = await resetPassword(
         token,
         email,
         password,
         passwordConfirmation
-      );
+      )
 
-      setMessage(res.message || 'Password reset successfully!');
-    } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError('Password reset failed.');
-      }
+      setMessage(res.message || 'Password reset successfully!')
+    } catch (err: unknown) {
+      if (err instanceof Error) setError(err.message)
+      else setError('Password reset failed.')
     }
-  };
+  }
 
   const handleLogout = () => {
-    logout();
-    router.push('/login');
-  };
+    logout()
+    router.push('/login')
+  }
 
   return (
     <div className="flex flex-col items-center min-h-screen bg-gray-50 p-6">
-      {/* Top-level Header */}
       <h1 className="text-3xl font-extrabold text-indigo-700 mb-6">
         Custom Salary View
       </h1>
 
-      {/* Form Container */}
       <div className="bg-white p-8 shadow-lg rounded-lg max-w-md w-full">
-        {/* Sub-header inside container */}
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold text-indigo-600">
             User Password Reset Details
@@ -71,7 +65,6 @@ export default function ResetPassword() {
         {error && <p className="text-red-600 mb-4">{error}</p>}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          
           <input
             type="password"
             placeholder="New Password"
@@ -98,5 +91,5 @@ export default function ResetPassword() {
         </form>
       </div>
     </div>
-  );
+  )
 }

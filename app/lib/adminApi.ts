@@ -1,9 +1,10 @@
 // lib/adminApi.ts
+'use client'
 
 export async function adminApiFetch(
   path: string,
   options: RequestInit = {},
-  router?: any, // no Router type import needed
+  router?: { push: (url: string) => void },
   token?: string
 ): Promise<Response> {
   const authToken = token || localStorage.getItem('adminToken')
@@ -14,25 +15,28 @@ export async function adminApiFetch(
   }
 
   // Verify token with backend
-  const verify = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/admin/verify-token`, {
-    headers: { Authorization: `Bearer ${authToken}` },
-  })
+  const verifyResponse = await fetch(
+    `${process.env.NEXT_PUBLIC_API_BASE}/admin/verify-token`,
+    {
+      headers: { Authorization: `Bearer ${authToken}` },
+    }
+  )
 
-  if (!verify.ok) {
+  if (!verifyResponse.ok) {
     localStorage.removeItem('adminToken')
     if (router) router.push('/')
     throw new Error('Invalid token')
   }
 
-  const verifyData = await verify.json()
+  const verifyData: { valid: boolean } = await verifyResponse.json()
   if (!verifyData.valid) {
     localStorage.removeItem('adminToken')
     if (router) router.push('/')
     throw new Error('Invalid token')
   }
 
-  // Actual request
-  return fetch(`${process.env.NEXT_PUBLIC_API_BASE}${path}`, {
+  // Perform the actual request
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}${path}`, {
     ...options,
     headers: {
       ...(options.headers || {}),
@@ -40,4 +44,6 @@ export async function adminApiFetch(
       'Content-Type': 'application/json',
     },
   })
+
+  return response
 }

@@ -8,7 +8,7 @@ export type User = {
   id: number;
   name: string;
   email: string;
-  role: 'admin' | 'user'
+  role: 'admin' | 'user';
 };
 
 export type SalaryRecord = {
@@ -34,27 +34,13 @@ export type AuthContextType = {
   allSalaries: SalaryRecord[] | null;
   login: (email: string, password: string) => Promise<User>;
   logout: () => Promise<void>;
-  register: (
-    name: string,
-    email: string,
-    password: string,
-    password_confirmation: string,
-    role: string
-  ) => Promise<void>;
+  register: (name: string, email: string, password: string, password_confirmation: string, role: string) => Promise<void>;
   forgotPassword: (email: string) => Promise<{ success: boolean; message: string }>;
-  resetPassword: (
-    token: string,
-    email: string,
-    password: string,
-    password_confirmation: string
-  ) => Promise<{ success: boolean; message: string }>;
+  resetPassword: (token: string, email: string, password: string, password_confirmation: string) => Promise<{ success: boolean; message: string }>;
   fetchUserSalary: () => Promise<void>;
   saveSalary: (data: SalaryData) => Promise<{ success: boolean; message: string }>;
   fetchAllSalaries: () => Promise<SalaryRecord[]>;
-  updateSalary: (
-    id: number,
-    data: Partial<SalaryData>
-  ) => Promise<{ success: boolean; message: string }>;
+  updateSalary: (id: number, data: Partial<SalaryData>) => Promise<{ success: boolean; message: string }>;
   deleteSalary: (id: number) => Promise<{ success: boolean; message: string }>;
 };
 
@@ -109,16 +95,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function login(email: string, password: string): Promise<User> {
-  await getCsrfCookie();
-  const data = await apiPost('/api/login', { email, password });
-
-  // Save user and token in state + localStorage
-  setAuth(data.token, data.user);
-
-  // Return the logged-in user
-  return data.user;
-}
-
+    await getCsrfCookie();
+    const data = await apiPost('/api/login', { email, password });
+    setAuth(data.token, data.user);
+    return data.user;
+  }
 
   async function logout() {
     if (!token) return;
@@ -138,8 +119,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await apiPost('/api/forgot-password', { email });
       return { success: true, message: 'Reset link sent! Please check your email.' };
-    } catch (err: any) {
-      return { success: false, message: err.message || 'Failed to send reset link' };
+    } catch (err: unknown) {
+      if (err instanceof Error) return { success: false, message: err.message };
+      return { success: false, message: 'Failed to send reset link' };
     }
   }
 
@@ -148,8 +130,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await apiPost('/api/reset-password', { token, email, password, password_confirmation });
       return { success: true, message: 'Password has been reset!' };
-    } catch (err: any) {
-      return { success: false, message: err.message || 'Failed to reset password' };
+    } catch (err: unknown) {
+      if (err instanceof Error) return { success: false, message: err.message };
+      return { success: false, message: 'Failed to reset password' };
     }
   }
 
@@ -172,13 +155,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await apiPost('/api/salaries', { name: user?.name, email: user?.email, ...salaryData }, { Authorization: `Bearer ${token}` });
       await fetchUserSalary();
-
-      // Trigger admin update
       localStorage.setItem('salaryUpdated', Date.now().toString());
-
       return { success: true, message: 'Salary saved successfully!' };
-    } catch (err: any) {
-      return { success: false, message: err.message || 'Error saving salary' };
+    } catch (err: unknown) {
+      if (err instanceof Error) return { success: false, message: err.message };
+      return { success: false, message: 'Error saving salary' };
     }
   }
 
@@ -193,13 +174,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!token) return { success: false, message: 'Not authenticated' };
     try {
       await apiPut(`/api/salaries/${id}`, salaryData, { Authorization: `Bearer ${token}` });
-
-      // Trigger admin update
       localStorage.setItem('salaryUpdated', Date.now().toString());
-
       return { success: true, message: 'Salary updated successfully' };
-    } catch (err: any) {
-      return { success: false, message: err.message || 'Error updating salary' };
+    } catch (err: unknown) {
+      if (err instanceof Error) return { success: false, message: err.message };
+      return { success: false, message: 'Error updating salary' };
     }
   }
 
@@ -207,13 +186,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!token) return { success: false, message: 'Not authenticated' };
     try {
       await apiDelete(`/api/salaries/${id}`, { Authorization: `Bearer ${token}` });
-
-      // Trigger admin update
       localStorage.setItem('salaryUpdated', Date.now().toString());
-
       return { success: true, message: 'Salary deleted successfully' };
-    } catch (err: any) {
-      return { success: false, message: err.message || 'Error deleting salary' };
+    } catch (err: unknown) {
+      if (err instanceof Error) return { success: false, message: err.message };
+      return { success: false, message: 'Error deleting salary' };
     }
   }
 

@@ -1,9 +1,8 @@
-// app/providers/AuthProviderWrapper.tsx
-'use client'
+'use client';
 
-import React from 'react'
-import { AuthProvider } from '../context/AuthContext'
+import React from 'react';
+import { AuthProvider } from '../context/AuthContext';
 
 export function AuthProviderWrapper({ children }: { children: React.ReactNode }) {
-  return <AuthProvider>{children}</AuthProvider>
+  return <AuthProvider>{children}</AuthProvider>;
 }

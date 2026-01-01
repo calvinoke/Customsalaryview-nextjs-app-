@@ -7,7 +7,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 /**
  * Fetch CSRF cookie from Laravel Sanctum
  */
-export async function getCsrfCookie() {
+export async function getCsrfCookie(): Promise<void> {
   await fetch(`${API_BASE}/sanctum/csrf-cookie`, {
     method: 'GET',
     credentials: 'include', // Important for sending cookies
@@ -15,16 +15,16 @@ export async function getCsrfCookie() {
 }
 
 /**
- * Helper for POST requests with automatic CSRF header
+ * Generic helper for POST requests with automatic CSRF header
  */
-export async function apiPost(
+export async function apiPost<T = any>(
   endpoint: string,
-  data: any,
+  data: unknown,
   extraHeaders: Record<string, string> = {}
- ) {
+): Promise<T> {
   await getCsrfCookie();
-
   const xsrfToken = Cookies.get('XSRF-TOKEN');
+
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(xsrfToken ? { 'X-XSRF-TOKEN': xsrfToken } : {}),
@@ -39,18 +39,17 @@ export async function apiPost(
   });
 
   if (!response.ok) throw new Error(`API error: ${response.status}`);
-
-  return response.json();
+  return response.json() as Promise<T>;
 }
 
 /**
- * Helper for GET requests with optional CSRF
+ * Generic helper for GET requests
  */
-export async function apiGet(
+export async function apiGet<T = any>(
   endpoint: string,
   extraHeaders: Record<string, string> = {}
- ) {
-  await getCsrfCookie(); // Added CSRF fetch for consistency
+): Promise<T> {
+  await getCsrfCookie();
 
   const xsrfToken = Cookies.get('XSRF-TOKEN');
   const headers: Record<string, string> = {
@@ -66,18 +65,17 @@ export async function apiGet(
   });
 
   if (!response.ok) throw new Error(`API error: ${response.status}`);
-
-  return response.json();
+  return response.json() as Promise<T>;
 }
 
 /**
- * Helper for PUT requests
+ * Generic helper for PUT requests
  */
-export async function apiPut(
+export async function apiPut<T = any>(
   endpoint: string,
-  data: any,
+  data: unknown,
   extraHeaders: Record<string, string> = {}
- ) {
+): Promise<T> {
   await getCsrfCookie();
 
   const xsrfToken = Cookies.get('XSRF-TOKEN');
@@ -95,17 +93,16 @@ export async function apiPut(
   });
 
   if (!response.ok) throw new Error(`API error: ${response.status}`);
-
-  return response.json();
+  return response.json() as Promise<T>;
 }
 
 /**
- * Helper for DELETE requests
+ * Generic helper for DELETE requests
  */
-export async function apiDelete(
+export async function apiDelete<T = any>(
   endpoint: string,
   extraHeaders: Record<string, string> = {}
- ) {
+): Promise<T> {
   await getCsrfCookie();
 
   const xsrfToken = Cookies.get('XSRF-TOKEN');
@@ -122,6 +119,5 @@ export async function apiDelete(
   });
 
   if (!response.ok) throw new Error(`API error: ${response.status}`);
-
-  return response.json();
+  return response.json() as Promise<T>;
 }

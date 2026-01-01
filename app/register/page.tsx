@@ -99,8 +99,9 @@ export default function RegisterPage() {
 
       setForm({ name: '', email: '', password: '', password_confirmation: '', role: '' })
       setTimeout(() => router.push('/login'), 3000)
-    } catch (err: any) {
-      setError(err.message || 'Registration failed')
+    } catch (err: unknown) {
+      if (err instanceof Error) setError(err.message)
+      else setError('Registration failed')
     } finally {
       setLoading(false)
     }
@@ -108,9 +109,7 @@ export default function RegisterPage() {
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-indigo-100 px-4">
-      {/* Stretch container slightly wider to fit header */}
       <div className="w-full max-w-lg bg-white rounded-3xl shadow-2xl p-8 md:p-10 flex flex-col">
-        {/* Header */}
         <h1 className="text-3xl md:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-cyan-500 to-indigo-600 text-center mb-2 drop-shadow-md whitespace-nowrap">
           Custom Salary View
         </h1>
@@ -118,7 +117,6 @@ export default function RegisterPage() {
           Register
         </h2>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="grid gap-4">
           <input
             type="text"
