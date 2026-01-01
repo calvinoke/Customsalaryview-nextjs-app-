@@ -1,4 +1,4 @@
-import { AuthProviderWrapper } from './providers/AuthProviderWrapper';
+import { AuthProviderWrapper } from '../providers/AuthProviderWrapper';
 
 export const metadata = {
   title: 'Next.js',
