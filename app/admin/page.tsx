@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { LogoutButton } from '../components/LogoutButton';
+import LogoutButton from '../components/LogoutButton';
+
 
 
 type SalaryRecord = {
